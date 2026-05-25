@@ -24,10 +24,13 @@ class CreatorDashboardController extends Controller
             ->map(fn ($c) => [
                 'id' => $c->id,
                 'title' => $c->title,
-                'client' => $c->buyer->name,
+                'client' => [
+                    'name' => $c->buyer->name,
+                    'avatar' => $c->buyer->displayAvatar(),
+                ],
                 'status' => $c->status->value,
-                'budget' => $c->budget,
-                'deadline' => $c->deadline?->format('M d, Y'),
+                'price' => $c->budget ?? 0,
+                'deadline' => $c->deadline?->format('M d, Y') ?? '-',
             ]);
 
         return Inertia::render('creator/dashboard', [

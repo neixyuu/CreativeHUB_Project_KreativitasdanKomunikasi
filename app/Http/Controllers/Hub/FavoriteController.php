@@ -26,7 +26,7 @@ class FavoriteController extends Controller
             ->get();
 
         return Inertia::render('hub/favorites', [
-            'creators' => CreatorCardResource::collection($creators),
+            'creators' => CreatorCardResource::collection($creators)->resolve(),
         ]);
     }
 

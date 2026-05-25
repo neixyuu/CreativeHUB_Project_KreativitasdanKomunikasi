@@ -1,14 +1,12 @@
 
-import { Link } from '@inertiajs/react'
-import { usePage } from '@inertiajs/react'
+import { Link, router, usePage } from '@inertiajs/react'
 import { useState } from "react"
 import {
   LayoutDashboard,
   ShoppingBag,
   Image,
   MessageSquare,
-  DollarSign,
-  Star,
+  User,
   Settings,
   LogOut,
   Sparkles,
@@ -32,10 +30,18 @@ const menuItems = [
   { icon: Image, label: "Layanan Saya", href: "/creator/services" },
   { icon: Image, label: "Portfolio", href: "/creator/portfolio" },
   { icon: MessageSquare, label: "Chat Pembeli", href: "/creator/messages" },
+  { icon: User, label: "Profil Marketplace", href: "/creator/marketplace-profile" },
+  { icon: Settings, label: "Pengaturan Akun", href: "/settings/profile" },
 ]
 
+type SharedAuth = {
+  auth: { user: { name: string; avatar: string; username?: string } | null };
+};
+
 export function CreatorSidebar() {
-  const { url } = usePage(); const pathname = url
+  const { url, props } = usePage<SharedAuth>();
+  const pathname = url;
+  const user = props.auth.user;
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
 
@@ -43,8 +49,10 @@ export function CreatorSidebar() {
     <>
       {/* Mobile Menu Button */}
       <button
+        type="button"
         onClick={() => setIsMobileOpen(true)}
         className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-background border border-border shadow-sm"
+        aria-label="Buka menu"
       >
         <Menu className="h-5 w-5" />
       </button>
@@ -152,12 +160,12 @@ export function CreatorSidebar() {
                   )}
                 >
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face" />
-                    <AvatarFallback>SW</AvatarFallback>
+                    <AvatarImage src={user?.avatar} />
+                    <AvatarFallback>{user?.name?.charAt(0) ?? 'C'}</AvatarFallback>
                   </Avatar>
                   {!isCollapsed && (
                     <div className="flex flex-col items-start">
-                      <span className="text-sm font-medium">Sarah Wijaya</span>
+                      <span className="text-sm font-medium">{user?.name ?? 'Kreator'}</span>
                       <span className="text-xs text-muted-foreground">Creator</span>
                     </div>
                   )}
@@ -165,17 +173,20 @@ export function CreatorSidebar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem asChild>
-                  <Link href="/creator/profile">View Profile</Link>
+                  <Link href={user?.username ? `/creator/${user.username}` : '/creator/dashboard'}>
+                    Profil Publik
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/creator/settings">Settings</Link>
+                  <Link href="/settings/profile">Pengaturan</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild className="text-destructive">
-                  <Link href="/login">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Logout
-                  </Link>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onSelect={() => router.post('/logout')}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

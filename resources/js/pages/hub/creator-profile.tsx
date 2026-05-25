@@ -124,6 +124,15 @@ export default function CreatorProfilePage() {
                     </CardContent>
                 </Card>
             </div>
+
+            {canChat && (
+                <p className="mt-8 text-center text-sm text-muted-foreground">
+                    Ada masalah dengan kreator ini?{' '}
+                    <Link href={`/contact?reported_user_id=${creator.id}`} className="text-primary underline">
+                        Kirim laporan
+                    </Link>
+                </p>
+            )}
         </div>
     );
 }

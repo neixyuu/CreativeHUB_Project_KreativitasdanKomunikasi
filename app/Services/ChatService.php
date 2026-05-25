@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\MessageSent;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
@@ -40,6 +41,8 @@ class ChatService
         ]);
 
         $conversation->update(['last_message_at' => $message->created_at]);
+
+        MessageSent::dispatch($message);
 
         return $message;
     }

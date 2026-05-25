@@ -1,6 +1,5 @@
 
-import { Link } from '@inertiajs/react'
-import { usePage } from '@inertiajs/react'
+import { Link, router, usePage } from '@inertiajs/react'
 import { useState } from "react"
 import {
   LayoutDashboard,
@@ -33,12 +32,19 @@ const menuItems = [
   { icon: FileText, label: "My Commission", href: "/dashboard/commissions" },
   { icon: MessageSquare, label: "Messages", href: "/dashboard/messages" },
   { icon: Heart, label: "Favorites", href: "/dashboard/favorites" },
+  { icon: Bell, label: "Notifications", href: "/dashboard/notifications" },
   { icon: User, label: "Profile", href: "/dashboard/profile" },
-  { icon: Settings, label: "Settings", href: "/dashboard/settings" },
+  { icon: Settings, label: "Settings", href: "/settings/profile" },
 ]
 
+type SharedAuth = {
+  auth: { user: { name: string; avatar: string; is_admin?: boolean } | null };
+};
+
 export function DashboardSidebar() {
-  const { url } = usePage(); const pathname = url
+  const { url, props } = usePage<SharedAuth>();
+  const pathname = url;
+  const user = props.auth.user;
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
 
@@ -46,8 +52,10 @@ export function DashboardSidebar() {
     <>
       {/* Mobile Menu Button */}
       <button
+        type="button"
         onClick={() => setIsMobileOpen(true)}
         className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-background border border-border shadow-sm"
+        aria-label="Buka menu"
       >
         <Menu className="h-5 w-5" />
       </button>
@@ -145,13 +153,13 @@ export function DashboardSidebar() {
                   )}
                 >
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" />
-                    <AvatarFallback>JD</AvatarFallback>
+                    <AvatarImage src={user?.avatar} />
+                    <AvatarFallback>{user?.name?.charAt(0) ?? 'U'}</AvatarFallback>
                   </Avatar>
                   {!isCollapsed && (
                     <div className="flex flex-col items-start">
-                      <span className="text-sm font-medium">John Doe</span>
-                      <span className="text-xs text-muted-foreground">Client</span>
+                      <span className="text-sm font-medium">{user?.name ?? 'Pengguna'}</span>
+                      <span className="text-xs text-muted-foreground">Pembeli</span>
                     </div>
                   )}
                 </Button>
@@ -164,17 +172,18 @@ export function DashboardSidebar() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/dashboard/settings">
+                  <Link href="/settings/profile">
                     <Settings className="mr-2 h-4 w-4" />
                     Settings
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild className="text-destructive">
-                  <Link href="/login">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Logout
-                  </Link>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onSelect={() => router.post('/logout')}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
