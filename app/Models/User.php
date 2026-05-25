@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Enums\UserRole;
+use App\Support\UsernameGenerator;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,9 +17,9 @@ use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-#[Fillable(['name', 'email', 'password', 'role', 'is_active'])]
+#[Fillable(['name', 'email', 'password', 'role', 'is_active', 'email_verified_at'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
-class User extends Authenticatable implements PasskeyUser
+class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
@@ -87,5 +89,41 @@ class User extends Authenticatable implements PasskeyUser
         }
 
         return 'https://ui-avatars.com/api/?name='.urlencode($this->name).'&background=7c3aed&color=fff';
+    }
+
+    public function ensureProfile(): Profile
+    {
+        if ($this->relationLoaded('profile') && $this->profile) {
+            return $this->profile;
+        }
+
+        return $this->profile()->firstOrCreate(
+            [],
+            [
+                'username' => UsernameGenerator::fromName($this->name, $this->email),
+            ],
+        );
+    }
+
+    public function ensureCreatorProfile(): CreatorProfile
+    {
+        if (! $this->isCreator()) {
+            throw new \LogicException('Hanya akun kreator yang memiliki creator profile.');
+        }
+
+        if ($this->relationLoaded('creatorProfile') && $this->creatorProfile) {
+            return $this->creatorProfile;
+        }
+
+        return $this->creatorProfile()->firstOrCreate(
+            [],
+            [
+                'specialty' => 'Belum diatur',
+                'starting_price' => 0,
+                'response_time' => null,
+                'skills' => [],
+                'languages' => ['Indonesian'],
+            ],
+        );
     }
 }

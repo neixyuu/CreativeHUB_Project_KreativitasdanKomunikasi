@@ -39,6 +39,7 @@ class CreateNewUser implements CreatesNewUsers
                 'email' => $input['email'],
                 'password' => $input['password'],
                 'role' => $role,
+                'email_verified_at' => app()->environment(['local', 'testing']) ? now() : null,
             ]);
 
             Profile::create([
@@ -51,9 +52,9 @@ class CreateNewUser implements CreatesNewUsers
             if ($role === UserRole::Creator) {
                 CreatorProfile::create([
                     'user_id' => $user->id,
-                    'specialty' => 'Kreator Digital',
-                    'starting_price' => 150000,
-                    'response_time' => '24 jam',
+                    'specialty' => '',
+                    'starting_price' => 0,
+                    'response_time' => null,
                     'skills' => [],
                     'languages' => ['Indonesian'],
                 ]);

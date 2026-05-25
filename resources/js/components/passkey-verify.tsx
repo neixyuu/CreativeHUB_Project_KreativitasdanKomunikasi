@@ -31,7 +31,12 @@ export default function PasskeyVerify({
             },
         }),
         onSuccess: (response) => {
-            router.visit(response.redirect ?? '/dashboard');
+            const redirect =
+                typeof response.redirect === 'string' && response.redirect.length > 0
+                    ? response.redirect
+                    : '/dashboard';
+
+            router.visit(redirect);
         },
     });
 

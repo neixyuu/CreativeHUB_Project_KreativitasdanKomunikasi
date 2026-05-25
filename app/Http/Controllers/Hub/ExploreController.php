@@ -8,6 +8,7 @@ use App\Http\Resources\CreatorCardResource;
 use App\Models\Favorite;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -18,6 +19,8 @@ class ExploreController extends Controller
         $query = User::query()
             ->where('role', UserRole::Creator)
             ->where('is_active', true)
+            ->whereHas('profile')
+            ->whereHas('creatorProfile')
             ->with(['profile', 'creatorProfile', 'portfolioItems' => fn ($q) => $q->orderBy('sort_order')->limit(1)]);
 
         if ($search = $request->string('q')->trim()->toString()) {
@@ -27,9 +30,13 @@ class ExploreController extends Controller
             });
         }
 
-        if ($category = $request->string('category')->trim()->toString()) {
-            if ($category !== 'all' && $category !== '') {
-                $query->whereHas('creatorProfile', fn ($q) => $q->where('specialty', 'like', '%'.str_replace('-', ' ', $category).'%'));
+        $category = $request->string('category')->trim()->toString();
+        if ($category !== '' && $category !== 'all') {
+            $specialty = collect(config('marketplace.explore_categories', []))
+                ->first(fn (string $name) => Str::slug($name) === $category);
+
+            if ($specialty) {
+                $query->whereHas('creatorProfile', fn ($q) => $q->where('specialty', 'like', '%'.$specialty.'%'));
             }
         }
 

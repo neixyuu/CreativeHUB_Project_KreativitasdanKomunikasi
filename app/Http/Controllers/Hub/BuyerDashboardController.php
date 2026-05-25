@@ -39,8 +39,8 @@ class BuyerDashboardController extends Controller
                 return [
                     'id' => $conv->id,
                     'sender' => [
-                        'name' => $other?->name,
-                        'avatar' => $other?->displayAvatar(),
+                        'name' => $other?->name ?? 'Pengguna',
+                        'avatar' => $other?->displayAvatar() ?? '',
                     ],
                     'message' => $last?->body ?? '',
                     'time' => $last?->created_at?->diffForHumans() ?? '',

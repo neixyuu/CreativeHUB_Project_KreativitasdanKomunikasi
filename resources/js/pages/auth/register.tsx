@@ -1,4 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
+import { useMemo } from 'react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
@@ -13,9 +14,22 @@ type Props = {
     passwordRules: string;
 };
 
+function defaultAccountType(): 'buyer' | 'creator' {
+    if (typeof window === 'undefined') {
+        return 'buyer';
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get('account_type') ?? params.get('type');
+
+    return type === 'creator' ? 'creator' : 'buyer';
+}
+
 export default function Register({ passwordRules }: Props) {
+    const accountTypeDefault = useMemo(() => defaultAccountType(), []);
+
     return (
-        <>
+        <div className="flex flex-col gap-6">
             <Head title="Register" />
             <Form
                 {...store.form()}
@@ -24,8 +38,7 @@ export default function Register({ passwordRules }: Props) {
                 className="flex flex-col gap-6"
             >
                 {({ processing, errors }) => (
-                    <>
-                        <div className="grid gap-6">
+                    <div className="grid gap-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="name">Name</Label>
                                 <Input
@@ -77,7 +90,7 @@ export default function Register({ passwordRules }: Props) {
                                 <select
                                     name="account_type"
                                     required
-                                    defaultValue="buyer"
+                                    defaultValue={accountTypeDefault}
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                 >
                                     <option value="buyer">Pembeli jasa (cari & pesan kreator)</option>
@@ -108,12 +121,14 @@ export default function Register({ passwordRules }: Props) {
                                 type="submit"
                                 className="mt-2 w-full"
                                 tabIndex={5}
+                                disabled={processing}
                                 data-test="register-user-button"
                             >
-                                {processing && <Spinner />}
-                                Create account
+                                <span className="inline-flex items-center justify-center gap-2">
+                                    {processing ? <Spinner /> : null}
+                                    <span>Create account</span>
+                                </span>
                             </Button>
-                        </div>
 
                         <div className="text-center text-sm text-muted-foreground">
                             Already have an account?{' '}
@@ -121,10 +136,10 @@ export default function Register({ passwordRules }: Props) {
                                 Log in
                             </TextLink>
                         </div>
-                    </>
+                    </div>
                 )}
             </Form>
-        </>
+        </div>
     );
 }
 

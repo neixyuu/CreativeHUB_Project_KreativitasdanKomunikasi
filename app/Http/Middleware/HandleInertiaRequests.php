@@ -20,6 +20,11 @@ class HandleInertiaRequests extends Middleware
 
         if ($user) {
             $user->loadMissing(['profile', 'creatorProfile']);
+            $user->ensureProfile();
+
+            if ($user->isCreator()) {
+                $user->ensureCreatorProfile();
+            }
         }
 
         return [

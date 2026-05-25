@@ -6,10 +6,12 @@ use App\Enums\CommissionStatus;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\Commission;
+use App\Models\Review;
 use App\Models\Service;
 use App\Models\User;
 use App\Services\ChatService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -24,13 +26,20 @@ class CommissionController extends Controller
 
         $query = Commission::query()
             ->where('buyer_id', $user->id)
-            ->with(['creator.profile']);
+            ->with(['creator.profile', 'conversation']);
 
         if ($status && $status !== 'all') {
             $query->where('status', $status);
         }
 
-        $commissions = $query->latest()->get()->map(fn ($c) => [
+        $commissionRows = $query->latest()->get();
+
+        $reviewedIds = Review::query()
+            ->whereIn('commission_id', $commissionRows->pluck('id'))
+            ->pluck('commission_id')
+            ->all();
+
+        $commissions = $commissionRows->map(fn ($c) => [
             'id' => $c->id,
             'title' => $c->title,
             'category' => $c->category,
@@ -39,7 +48,11 @@ class CommissionController extends Controller
             'progress' => $c->progress,
             'deadline' => $c->deadline?->format('M d, Y'),
             'budget' => $c->budget,
+            'conversation_id' => $c->conversation?->id,
+            'can_review' => $c->status === CommissionStatus::Completed
+                && ! in_array($c->id, $reviewedIds, true),
             'creator' => [
+                'id' => $c->creator->id,
                 'name' => $c->creator->name,
                 'username' => $c->creator->profile?->username,
                 'avatar' => $c->creator->displayAvatar(),
@@ -74,6 +87,7 @@ class CommissionController extends Controller
         return Inertia::render('hub/commission-create', [
             'creators' => $creators,
             'services' => $services,
+            'categories' => config('marketplace.commission_categories', []),
             'prefill' => [
                 'creator_id' => $request->integer('creator') ?: null,
                 'service_id' => $request->integer('service') ?: null,
@@ -83,11 +97,15 @@ class CommissionController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge([
+            'service_id' => $request->input('service_id') ?: null,
+        ]);
+
         $validated = $request->validate([
             'creator_id' => ['required', 'exists:users,id'],
             'service_id' => ['nullable', 'exists:services,id'],
             'title' => ['required', 'string', 'max:255'],
-            'category' => ['required', 'string', 'max:100'],
+            'category' => ['required', 'string', 'max:100', Rule::in(config('marketplace.commission_categories', []))],
             'description' => ['required', 'string'],
             'budget' => ['nullable', 'integer', 'min:0'],
             'deadline' => ['nullable', 'date', 'after:today'],

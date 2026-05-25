@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Hub;
 
+use App\Enums\CommissionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Commission;
 use Illuminate\Http\Request;
@@ -13,7 +14,8 @@ class BuyerProfileController extends Controller
 {
     public function show(Request $request): Response
     {
-        $user = $request->user()->load('profile');
+        $user = $request->user();
+        $profile = $user->ensureProfile();
 
         $commissions = Commission::query()
             ->where('buyer_id', $user->id)
@@ -26,16 +28,18 @@ class BuyerProfileController extends Controller
             'profile' => [
                 'name' => $user->name,
                 'email' => $user->email,
-                'username' => $user->profile->username,
+                'username' => $profile->username,
                 'avatar' => $user->displayAvatar(),
-                'bio' => $user->profile->bio,
-                'location' => $user->profile->location,
-                'phone' => $user->profile->phone,
+                'bio' => $profile->bio,
+                'location' => $profile->location,
+                'phone' => $profile->phone,
                 'member_since' => $user->created_at->format('M Y'),
             ],
             'stats' => [
                 'total_commissions' => Commission::where('buyer_id', $user->id)->count(),
-                'completed' => Commission::where('buyer_id', $user->id)->where('status', 'completed')->count(),
+                'completed' => Commission::where('buyer_id', $user->id)
+                    ->where('status', CommissionStatus::Completed)
+                    ->count(),
             ],
             'recentCommissions' => $commissions->map(fn ($c) => [
                 'id' => $c->id,
@@ -49,6 +53,7 @@ class BuyerProfileController extends Controller
     public function update(Request $request)
     {
         $user = $request->user();
+        $profile = $user->ensureProfile();
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -67,13 +72,13 @@ class BuyerProfileController extends Controller
         ];
 
         if ($request->hasFile('avatar')) {
-            if ($user->profile->avatar && ! str_starts_with($user->profile->avatar, 'http')) {
-                Storage::disk('public')->delete($user->profile->avatar);
+            if ($profile->avatar && ! str_starts_with($profile->avatar, 'http')) {
+                Storage::disk('public')->delete($profile->avatar);
             }
             $profileData['avatar'] = $request->file('avatar')->store('avatars', 'public');
         }
 
-        $user->profile->update($profileData);
+        $profile->update($profileData);
 
         return back()->with('success', 'Profil berhasil diperbarui.');
     }

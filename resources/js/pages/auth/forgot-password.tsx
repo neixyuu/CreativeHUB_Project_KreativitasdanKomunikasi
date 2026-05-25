@@ -11,7 +11,7 @@ import { email } from '@/routes/password';
 
 export default function ForgotPassword({ status }: { status?: string }) {
     return (
-        <>
+        <div className="flex flex-col gap-6">
             <Head title="Forgot password" />
 
             {status && (
@@ -23,7 +23,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
             <div className="space-y-6">
                 <Form {...email.form()}>
                     {({ processing, errors }) => (
-                        <>
+                        <div className="grid gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="email">Email address</Label>
                                 <Input
@@ -50,7 +50,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     Email password reset link
                                 </Button>
                             </div>
-                        </>
+                        </div>
                     )}
                 </Form>
 
@@ -59,7 +59,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     <TextLink href={login()}>log in</TextLink>
                 </div>
             </div>
-        </>
+        </div>
     );
 }
 

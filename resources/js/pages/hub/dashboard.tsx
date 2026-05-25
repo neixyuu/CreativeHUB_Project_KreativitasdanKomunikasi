@@ -107,7 +107,10 @@ export default function BuyerDashboard() {
                         </Button>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {recentMessages.map((msg) => (
+                        {recentMessages.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">Belum ada pesan.</p>
+                        ) : (
+                            recentMessages.map((msg) => (
                             <Link key={msg.id} href={`/dashboard/messages?conversation=${msg.id}`} className="flex gap-4 rounded-lg p-2 hover:bg-muted/50">
                                 <Avatar>
                                     <AvatarImage src={msg.sender.avatar} />
@@ -119,7 +122,8 @@ export default function BuyerDashboard() {
                                 </div>
                                 <span className="text-xs text-muted-foreground">{msg.time}</span>
                             </Link>
-                        ))}
+                            ))
+                        )}
                     </CardContent>
                 </Card>
             </div>
