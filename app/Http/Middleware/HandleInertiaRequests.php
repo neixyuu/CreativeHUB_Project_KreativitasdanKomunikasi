@@ -30,7 +30,7 @@ class HandleInertiaRequests extends Middleware
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'role' => $user->role->value,
+                    'role' => $user->role?->value ?? 'buyer',
                     'username' => $user->profile?->username,
                     'avatar' => $user->displayAvatar(),
                     'bio' => $user->profile?->bio,

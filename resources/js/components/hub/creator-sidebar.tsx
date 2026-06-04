@@ -1,6 +1,8 @@
 
-import { Link } from '@inertiajs/react'
-import { usePage } from '@inertiajs/react'
+import { Link, router, usePage } from '@inertiajs/react'
+import type { Auth } from '@/types/auth'
+import { profilePathFor, settingsPathFor } from '@/lib/navigation'
+import { logout } from '@/routes'
 import { useState } from "react"
 import {
   LayoutDashboard,
@@ -16,6 +18,7 @@ import {
   Menu
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useInitials } from '@/hooks/use-initials'
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -35,7 +38,9 @@ const menuItems = [
 ]
 
 export function CreatorSidebar() {
-  const { url } = usePage(); const pathname = url
+  const { auth } = usePage<{ auth: Auth }>().props
+  const pathname = usePage().url
+  const getInitials = useInitials()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
 
@@ -152,12 +157,12 @@ export function CreatorSidebar() {
                   )}
                 >
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face" />
-                    <AvatarFallback>SW</AvatarFallback>
+                    <AvatarImage src={auth.user?.avatar} alt={auth.user?.name} />
+                    <AvatarFallback>{getInitials(auth.user?.name ?? '')}</AvatarFallback>
                   </Avatar>
-                  {!isCollapsed && (
+                  {!isCollapsed && auth.user && (
                     <div className="flex flex-col items-start">
-                      <span className="text-sm font-medium">Sarah Wijaya</span>
+                      <span className="text-sm font-medium">{auth.user.name}</span>
                       <span className="text-xs text-muted-foreground">Creator</span>
                     </div>
                   )}
@@ -165,17 +170,18 @@ export function CreatorSidebar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem asChild>
-                  <Link href="/creator/profile">View Profile</Link>
+                  <Link href={profilePathFor(auth.user)}>View Profile</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/creator/settings">Settings</Link>
+                  <Link href={settingsPathFor(auth.user)}>Settings</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild className="text-destructive">
-                  <Link href="/login">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Logout
-                  </Link>
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={() => router.post(logout.url())}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

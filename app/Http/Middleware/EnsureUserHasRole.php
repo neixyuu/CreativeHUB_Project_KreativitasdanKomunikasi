@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Enums\UserRole;
+use App\Support\RedirectsUsersByRole;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,7 +28,7 @@ class EnsureUserHasRole
         );
 
         if (! in_array($user->role, $allowed, true)) {
-            abort(403, 'Anda tidak memiliki izin untuk halaman ini.');
+            return redirect(RedirectsUsersByRole::pathFor($user));
         }
 
         return $next($request);

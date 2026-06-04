@@ -1,9 +1,18 @@
-import { Form, Link, router, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, Heart, MapPin, MessageSquare, Star } from 'lucide-react';
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 
 type Creator = {
     id: number;
@@ -35,9 +44,20 @@ function formatPrice(price: number) {
 export default function CreatorProfilePage() {
     const { creator, isFavorite, canChat, canCommission } = usePage<Props>().props;
     const [fav, setFav] = useState(isFavorite);
+    const [chatOpen, setChatOpen] = useState(false);
+    const [chatBody, setChatBody] = useState('');
 
-    const startChat = () => {
-        router.post('/chat/start', { user_id: creator.id });
+    const sendChat = () => {
+        router.post(
+            '/chat/start',
+            { user_id: creator.id, body: chatBody.trim() || undefined },
+            {
+                onFinish: () => {
+                    setChatOpen(false);
+                    setChatBody('');
+                },
+            },
+        );
     };
 
     return (
@@ -76,7 +96,7 @@ export default function CreatorProfilePage() {
                                 </Button>
                             )}
                             {canChat ? (
-                                <Button variant="outline" onClick={startChat}>
+                                <Button variant="outline" onClick={() => setChatOpen(true)}>
                                     <MessageSquare className="mr-2 h-4 w-4" /> Chat
                                 </Button>
                             ) : (
@@ -98,6 +118,29 @@ export default function CreatorProfilePage() {
                 </div>
             </div>
 
+            <Dialog open={chatOpen} onOpenChange={setChatOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Kirim pesan ke {creator.name}</DialogTitle>
+                        <DialogDescription>
+                            Mulai percakapan dengan penjual. Kosongkan pesan jika ingin mengetik di halaman chat.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <Textarea
+                        value={chatBody}
+                        onChange={(e) => setChatBody(e.target.value)}
+                        placeholder="Halo, saya tertarik dengan layanan Anda..."
+                        rows={4}
+                    />
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setChatOpen(false)}>
+                            Batal
+                        </Button>
+                        <Button onClick={sendChat}>Mulai Chat</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
             <div className="grid gap-8 lg:grid-cols-2">
                 <Card>
                     <CardHeader><CardTitle>Layanan Ditawarkan</CardTitle></CardHeader>
@@ -118,9 +161,13 @@ export default function CreatorProfilePage() {
                 <Card>
                     <CardHeader><CardTitle>Portfolio</CardTitle></CardHeader>
                     <CardContent className="grid grid-cols-2 gap-3">
-                        {creator.portfolio.map((p) => (
-                            <img key={p.id} src={p.image} alt={p.title} className="aspect-video rounded-lg object-cover" />
-                        ))}
+                        {creator.portfolio.length === 0 ? (
+                            <p className="col-span-2 text-sm text-muted-foreground">Belum ada portfolio.</p>
+                        ) : (
+                            creator.portfolio.map((p) => (
+                                <img key={p.id} src={p.image} alt={p.title} className="aspect-square rounded-lg object-cover" />
+                            ))
+                        )}
                     </CardContent>
                 </Card>
             </div>

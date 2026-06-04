@@ -39,6 +39,7 @@ class CreateNewUser implements CreatesNewUsers
                 'email' => $input['email'],
                 'password' => $input['password'],
                 'role' => $role,
+                'email_verified_at' => now(),
             ]);
 
             Profile::create([

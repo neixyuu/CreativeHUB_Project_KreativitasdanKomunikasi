@@ -1,6 +1,6 @@
 
-import { Link } from '@inertiajs/react'
-import { usePage } from '@inertiajs/react'
+import { Link, usePage } from '@inertiajs/react'
+import type { Auth } from '@/types/auth'
 import { useState } from "react"
 import {
   LayoutDashboard,
@@ -17,6 +17,7 @@ import {
   Menu
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useInitials } from '@/hooks/use-initials'
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -38,7 +39,9 @@ const menuItems = [
 ]
 
 export function DashboardSidebar() {
-  const { url } = usePage(); const pathname = url
+  const { auth } = usePage<{ auth: Auth }>().props
+  const pathname = usePage().url
+  const getInitials = useInitials()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
 
@@ -145,13 +148,13 @@ export function DashboardSidebar() {
                   )}
                 >
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" />
-                    <AvatarFallback>JD</AvatarFallback>
+                    <AvatarImage src={auth.user?.avatar} alt={auth.user?.name} />
+                    <AvatarFallback>{getInitials(auth.user?.name ?? '')}</AvatarFallback>
                   </Avatar>
-                  {!isCollapsed && (
+                  {!isCollapsed && auth.user && (
                     <div className="flex flex-col items-start">
-                      <span className="text-sm font-medium">John Doe</span>
-                      <span className="text-xs text-muted-foreground">Client</span>
+                      <span className="text-sm font-medium">{auth.user.name}</span>
+                      <span className="text-xs text-muted-foreground">Pembeli</span>
                     </div>
                   )}
                 </Button>

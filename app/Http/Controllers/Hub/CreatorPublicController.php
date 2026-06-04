@@ -63,8 +63,8 @@ class CreatorPublicController extends Controller
                 ]),
             ],
             'isFavorite' => $isFavorite,
-            'canChat' => (bool) $request->user(),
-            'canCommission' => (bool) $request->user() && $request->user()->isBuyer(),
+            'canChat' => $request->user()?->isBuyer() ?? false,
+            'canCommission' => $request->user()?->isBuyer() ?? false,
         ]);
     }
 }

@@ -4,7 +4,8 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
-use App\Enums\UserRole;
+use App\Http\Responses\LoginResponse;
+use App\Http\Responses\RegisterResponse;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -22,7 +23,15 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(
+            \Laravel\Fortify\Contracts\LoginResponse::class,
+            LoginResponse::class,
+        );
+
+        $this->app->singleton(
+            \Laravel\Fortify\Contracts\RegisterResponse::class,
+            RegisterResponse::class,
+        );
     }
 
     /**
@@ -33,29 +42,6 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureActions();
         $this->configureViews();
         $this->configureRateLimiting();
-        $this->configureRedirects();
-    }
-
-    private function configureRedirects(): void
-    {
-        Fortify::redirects('login', function () {
-            $user = auth()->user();
-
-            return match ($user?->role) {
-                UserRole::Admin => '/admin',
-                UserRole::Creator => '/creator/dashboard',
-                default => '/dashboard',
-            };
-        });
-
-        Fortify::redirects('register', function () {
-            $user = auth()->user();
-
-            return match ($user?->role) {
-                UserRole::Creator => '/creator/dashboard',
-                default => '/dashboard',
-            };
-        });
     }
 
     /**

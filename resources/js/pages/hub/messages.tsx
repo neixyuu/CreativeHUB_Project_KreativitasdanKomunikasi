@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import type { Auth } from '@/types/auth';
 
 type ConversationItem = {
     id: number;
@@ -28,30 +29,39 @@ type Props = {
     activeConversationId: number | null;
     activePartner: { id: number; name: string; avatar: string } | null;
     messages: MessageItem[];
+    messagesPath: string;
 };
 
 export default function MessagesPage() {
-    const { conversations, activeConversationId, activePartner, messages } =
-        usePage<Props>().props;
+    const { conversations, activeConversationId, activePartner, messages, messagesPath } =
+        usePage<Props & { auth: Auth }>().props;
     const [body, setBody] = useState('');
+    const isCreator = usePage<Props & { auth: Auth }>().props.auth.user?.role === 'creator';
+    const postPath = isCreator ? '/creator/messages' : '/dashboard/messages';
 
     return (
-        <div className="flex h-[calc(100vh-4rem)]">
+        <div className={cn('flex', isCreator ? 'h-screen' : 'h-[calc(100vh-4rem)]')}>
             <div className="w-full max-w-sm border-r border-border">
                 <div className="border-b border-border p-4">
                     <h2 className="font-semibold">Pesan</h2>
-                    <p className="text-sm text-muted-foreground">Chat dengan pembeli / penjual</p>
+                    <p className="text-sm text-muted-foreground">
+                        {isCreator
+                            ? 'Chat dengan pembeli'
+                            : 'Chat dengan kreator'}
+                    </p>
                 </div>
                 <div className="overflow-y-auto">
                     {conversations.length === 0 ? (
                         <p className="p-4 text-sm text-muted-foreground">
-                            Belum ada percakapan. Mulai dari profil kreator atau pesanan komisi.
+                            {isCreator
+                                ? 'Belum ada percakapan. Pesanan komisi baru akan membuka chat dengan pembeli.'
+                                : 'Belum ada percakapan. Mulai dari profil kreator atau buat komisi.'}
                         </p>
                     ) : (
                         conversations.map((conv) => (
                             <Link
                                 key={conv.id}
-                                href={`/dashboard/messages?conversation=${conv.id}`}
+                                href={`${messagesPath}?conversation=${conv.id}`}
                                 className={cn(
                                     'flex items-center gap-3 border-b border-border/50 p-4 hover:bg-muted/50',
                                     activeConversationId === conv.id && 'bg-muted/50',
@@ -108,7 +118,7 @@ export default function MessagesPage() {
                             ))}
                         </div>
                         <Form
-                            action="/dashboard/messages"
+                            action={postPath}
                             method="post"
                             className="flex gap-2 border-t border-border p-4"
                             onSubmit={(e) => {
@@ -130,7 +140,9 @@ export default function MessagesPage() {
                     </>
                 ) : (
                     <div className="flex flex-1 items-center justify-center text-muted-foreground">
-                        Pilih percakapan atau mulai chat dari profil kreator
+                        {isCreator
+                            ? 'Pilih percakapan dengan pembeli'
+                            : 'Pilih percakapan atau mulai chat dari profil kreator'}
                     </div>
                 )}
             </div>

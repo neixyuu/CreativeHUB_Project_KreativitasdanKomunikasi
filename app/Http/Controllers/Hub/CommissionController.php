@@ -24,7 +24,7 @@ class CommissionController extends Controller
 
         $query = Commission::query()
             ->where('buyer_id', $user->id)
-            ->with(['creator.profile']);
+            ->with(['creator.profile', 'creator.creatorProfile', 'conversation']);
 
         if ($status && $status !== 'all') {
             $query->where('status', $status);
@@ -32,6 +32,7 @@ class CommissionController extends Controller
 
         $commissions = $query->latest()->get()->map(fn ($c) => [
             'id' => $c->id,
+            'conversation_id' => $c->conversation?->id,
             'title' => $c->title,
             'category' => $c->category,
             'status' => $c->status->value,
@@ -43,6 +44,7 @@ class CommissionController extends Controller
                 'name' => $c->creator->name,
                 'username' => $c->creator->profile?->username,
                 'avatar' => $c->creator->displayAvatar(),
+                'specialty' => $c->creator->creatorProfile?->specialty,
             ],
         ]);
 

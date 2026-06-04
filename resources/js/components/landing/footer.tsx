@@ -6,26 +6,15 @@ const footerLinks = {
     { label: "Explore Creators", href: "/explore" },
     { label: "Start Commission", href: "/commission/create" },
     { label: "Become a Creator", href: "/register?type=creator" },
-    { label: "Pricing", href: "/pricing" }
   ],
   company: [
     { label: "About Us", href: "/about" },
-    { label: "Careers", href: "/careers" },
-    { label: "Blog", href: "/blog" },
-    { label: "Press", href: "/press" }
   ],
   support: [
-    { label: "Help Center", href: "/help" },
-    { label: "Contact Us", href: "/contact" },
-    { label: "Community", href: "/community" },
-    { label: "FAQ", href: "/faq" }
+    { label: "Login", href: "/login" },
+    { label: "Register", href: "/register" },
   ],
-  legal: [
-    { label: "Terms of Service", href: "/terms" },
-    { label: "Privacy Policy", href: "/privacy" },
-    { label: "Cookie Policy", href: "/cookies" },
-    { label: "Licenses", href: "/licenses" }
-  ]
+  legal: [] as { label: string; href: string }[],
 }
 
 const socialLinks = [
@@ -109,19 +98,20 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Legal Links */}
-          <div>
-            <h3 className="font-semibold mb-4">Legal</h3>
-            <ul className="space-y-3">
-              {footerLinks.legal.map((link) => (
-                <li key={link.label}>
-                  <Link href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {footerLinks.legal.length > 0 && (
+            <div>
+              <h3 className="font-semibold mb-4">Legal</h3>
+              <ul className="space-y-3">
+                {footerLinks.legal.map((link) => (
+                  <li key={link.label}>
+                    <Link href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         {/* Bottom Bar */}

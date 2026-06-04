@@ -44,6 +44,7 @@ class ExploreController extends Controller
         }
 
         return Inertia::render('hub/explore', [
+            'canChat' => $request->user()?->isBuyer() ?? false,
             'creators' => CreatorCardResource::collection($creators)->additional([
                 'meta' => [
                     'current_page' => $creators->currentPage(),

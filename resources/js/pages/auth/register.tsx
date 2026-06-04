@@ -1,4 +1,4 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, usePage } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
@@ -14,6 +14,12 @@ type Props = {
 };
 
 export default function Register({ passwordRules }: Props) {
+    const defaultAccountType =
+        new URLSearchParams(usePage().url.split('?')[1] ?? '').get('type') ===
+        'creator'
+            ? 'creator'
+            : 'buyer';
+
     return (
         <>
             <Head title="Register" />
@@ -77,7 +83,7 @@ export default function Register({ passwordRules }: Props) {
                                 <select
                                     name="account_type"
                                     required
-                                    defaultValue="buyer"
+                                    defaultValue={defaultAccountType}
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                 >
                                     <option value="buyer">Pembeli jasa (cari & pesan kreator)</option>

@@ -69,11 +69,14 @@ class ChatController extends Controller
             ]);
         }
 
-        return Inertia::render('hub/messages', [
+        $page = $user->isCreator() ? 'creator/messages' : 'hub/messages';
+
+        return Inertia::render($page, [
             'conversations' => $list,
             'activeConversationId' => $activeId,
             'activePartner' => $activePartner,
             'messages' => $messages,
+            'messagesPath' => $user->isCreator() ? '/creator/messages' : '/dashboard/messages',
         ]);
     }
 
@@ -91,24 +94,39 @@ class ChatController extends Controller
 
         $this->chat->sendMessage($conversation, $user, $validated['body']);
 
-        return redirect()->route('hub.messages', ['conversation' => $conversation->id]);
+        return redirect()->route($this->messagesRouteName($user), ['conversation' => $conversation->id]);
     }
 
     public function start(Request $request)
     {
         $validated = $request->validate([
             'user_id' => ['required', 'exists:users,id'],
+            'body' => ['nullable', 'string', 'max:5000'],
         ]);
 
         $user = $request->user();
-        $other = User::query()->findOrFail($validated['user_id']);
 
-        if ($other->id === $user->id) {
-            return back()->with('error', 'Tidak dapat memulai chat dengan diri sendiri.');
+        if (! $user->isBuyer()) {
+            abort(403, 'Hanya pembeli yang dapat memulai chat dengan penjual.');
         }
 
-        $conversation = $this->chat->findOrCreateBetween($user, $other);
+        $creator = User::query()
+            ->where('role', UserRole::Creator)
+            ->where('is_active', true)
+            ->findOrFail($validated['user_id']);
+
+        $conversation = $this->chat->findOrCreateBetween($user, $creator);
+
+        $body = trim($validated['body'] ?? '');
+        if ($body !== '') {
+            $this->chat->sendMessage($conversation, $user, $body);
+        }
 
         return redirect()->route('hub.messages', ['conversation' => $conversation->id]);
+    }
+
+    private function messagesRouteName(User $user): string
+    {
+        return $user->isCreator() ? 'creator.messages' : 'hub.messages';
     }
 }

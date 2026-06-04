@@ -1,5 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { Heart, MapPin, Search, SlidersHorizontal, Star } from 'lucide-react';
+import { Heart, MapPin, MessageSquare, Search, SlidersHorizontal, Star } from 'lucide-react';
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,7 @@ type Props = {
     creators: { data: Creator[] };
     favoriteIds: number[];
     filters: { q: string; category: string };
+    canChat: boolean;
 };
 
 function formatPrice(price: number) {
@@ -36,7 +37,7 @@ function formatPrice(price: number) {
 }
 
 export default function ExplorePage() {
-    const { creators, favoriteIds, filters } = usePage<Props>().props;
+    const { creators, favoriteIds, filters, canChat } = usePage<Props>().props;
     const [searchQuery, setSearchQuery] = useState(filters.q);
     const [favorites, setFavorites] = useState<number[]>(favoriteIds);
 
@@ -61,6 +62,12 @@ export default function ExplorePage() {
 
     const handleSearch = () => {
         router.get('/explore', { q: searchQuery, category: filters.category });
+    };
+
+    const startChat = (e: React.MouseEvent, creatorId: number) => {
+        e.preventDefault();
+        e.stopPropagation();
+        router.post('/chat/start', { user_id: creatorId });
     };
 
     return (
@@ -141,11 +148,24 @@ export default function ExplorePage() {
                                         {creator.rating} ({creator.reviews})
                                     </div>
                                 </CardContent>
-                                <CardFooter className="flex justify-between p-4 pt-0">
+                                <CardFooter className="flex flex-wrap items-center justify-between gap-2 p-4 pt-0">
                                     <span className="font-semibold text-primary">
                                         {formatPrice(creator.starting_price)}
                                     </span>
-                                    <Button size="sm">Lihat Profil</Button>
+                                    <div className="flex gap-2">
+                                        {canChat && (
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={(e) => startChat(e, creator.id)}
+                                            >
+                                                <MessageSquare className="mr-1 h-4 w-4" />
+                                                Chat
+                                            </Button>
+                                        )}
+                                        <Button size="sm">Lihat Profil</Button>
+                                    </div>
                                 </CardFooter>
                             </Card>
                         </Link>
